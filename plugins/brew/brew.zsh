@@ -1,6 +1,10 @@
 if [[ $(uname) = 'Darwin' ]]; then
     if command -v brew >/dev/null 2>&1; then
-    # refresh brew by upgrading all outdated casks
+
+        # Prefer brew install binaries over system binaries
+        export PATH="/opt/homebrew/bin:$PATH"
+        
+        # refresh brew by upgrading all outdated casks
         alias brewupo='brew outdated | while read cask; do brew upgrade $cask; done'
         alias brewup='brew update && brew upgrade && brew cleanup'
         
