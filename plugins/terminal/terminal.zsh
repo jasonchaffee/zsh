@@ -110,4 +110,4 @@ function tab-blue() { tab-color 6f8ccc; }
 function tab-purple() { tab-color a789d4; }
 function tab-orange() { tab-color fbbc79; }
 function tab-white() { tab-color fff; }
-function tab-gray() { tab-color c3c3c3c; }
+function tab-gray() { tab-color c3c3c3; }
