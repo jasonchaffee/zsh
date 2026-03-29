@@ -35,6 +35,12 @@ ai: [claude:2.1.86] [codex:0.117.0] [gemini:0.35.3] [copilot:0.0.422] [cursor:2.
 
 Empty categories produce no output (no empty label lines).
 
+`prompt_one` renders all rows inline on a single line. `prompt_two` through `prompt_four` use separate lines per category.
+
+### Known Risks
+
+- **Slow commands:** Tools like `docker --version` can hang if the Docker daemon is unresponsive. No timeout mechanism is included in this iteration. If this becomes a problem, async version fetching or caching can be added later.
+
 ### New Version Functions
 
 Each tool gets a `*_prompt_info()` function following the existing pattern:
@@ -66,8 +72,9 @@ All functions are guarded with `command -v <cmd> >/dev/null 2>&1` — missing to
 A helper function `_clean_version()` handles common version string noise:
 
 - Strip leading `v` or `V`
-- Strip `+<build>` suffixes (e.g., `+g980d8ac`)
-- Strip `-<metadata>` suffixes (e.g., `-rd`, `-dispatcher`)
+- Strip `+<build>` suffixes (e.g., `+g980d8ac`) — these are build metadata, not meaningful
+- Strip known noise suffixes: `-rd`, `-dispatcher` — platform-specific build tags
+- Preserve pre-release identifiers like `-rc1`, `-beta.2` — these are meaningful version info
 - Strip trailing dots
 
 Applied when `PROMPT_VERSION_MODE=clean` (default). When `raw`, the function passes through unmodified.
@@ -96,7 +103,7 @@ Four configuration functions, all taking effect immediately:
 
 Named presets that set all three colors at once:
 
-| Preset | Title | Tool | Version |
+| Preset | Label | Tool | Version |
 |---|---|---|---|
 | `default` | cyan | yellow | magenta |
 | `ocean` | blue | cyan | green |
@@ -108,10 +115,10 @@ Named presets that set all three colors at once:
 
 Granular color override. Two calling conventions:
 
-- `prompt_colors title blue` — change one slot
-- `prompt_colors cyan yellow magenta` — set all three positionally (title, tool, version)
+- `prompt_colors <slot> <color>` — change one slot (2 args). Slots: `label`, `tool`, `version`
+- `prompt_colors <label> <tool> <version>` — set all three positionally (3 args)
 
-Valid colors: red, green, yellow, blue, magenta, cyan, white.
+Any other argument count prints usage. Valid colors: red, green, yellow, blue, magenta, cyan, white.
 
 #### `prompt_labels <style>`
 
@@ -133,7 +140,7 @@ Toggle version string cleanup:
 All configuration state is stored in shell variables:
 
 ```zsh
-PROMPT_TITLE_COLOR=cyan      # category label color
+PROMPT_LABEL_COLOR=cyan      # category label color
 PROMPT_TOOL_COLOR=yellow     # tool name color
 PROMPT_VERSION_COLOR=magenta # version number color
 PROMPT_LABEL_STYLE=text      # text|emoji|none
@@ -141,6 +148,14 @@ PROMPT_VERSION_MODE=clean    # clean|raw
 ```
 
 Users can set these directly in `.zshrc` or use the functions interactively.
+
+### PREFIX/SUFFIX Migration
+
+The existing language functions use `ZSH_THEME_*_PROMPT_PREFIX/SUFFIX` variables that bake colors in at load time. To support runtime color changes, these are refactored:
+
+- PREFIX/SUFFIX values are computed from `PROMPT_TOOL_COLOR` and `PROMPT_VERSION_COLOR` via a `_update_theme_colors()` helper
+- `_update_theme_colors()` is called at theme load time and whenever `prompt_theme` or `prompt_colors` is invoked
+- Existing language functions (`java_prompt_info`, `go_prompt_info`, etc.) continue using PREFIX/SUFFIX — no API change, just the values become dynamic
 
 ### Implementation Structure
 
@@ -150,12 +165,13 @@ Code organization within the file:
 
 1. Configuration variable defaults
 2. `_clean_version` helper
-3. Existing language functions (unchanged)
-4. New tool version functions (terraform, terragrunt, docker, helm, kubectl, k9s, claude, codex, gemini, copilot, cursor, grok, deepseek, aider, pulumi, ansible, packer)
-5. Row functions (lang, iac, ops, ai)
-6. Configuration functions (prompt_theme, prompt_colors, prompt_labels, prompt_versions)
-7. Updated prompt functions (prompt_one through prompt_four)
-8. Theme variable setup (existing + new tools, using configuration variables for colors)
+3. `_update_theme_colors` helper (sets all PREFIX/SUFFIX vars from config vars)
+4. Existing language functions (unchanged API, colors now dynamic)
+5. New tool version functions (terraform, terragrunt, docker, helm, kubectl, k9s, claude, codex, gemini, copilot, cursor, grok, deepseek, aider, pulumi, ansible, packer)
+6. Row functions (lang, iac, ops, ai)
+7. Configuration functions (prompt_theme, prompt_colors, prompt_labels, prompt_versions)
+8. Updated prompt functions (prompt_one through prompt_four)
+9. Initial call to `_update_theme_colors` with defaults
 
 ### Dumb Terminal Support
 
