@@ -19,7 +19,7 @@ Tool versions are organized into four categories, each rendered on its own line.
 | Languages | `lang:` | `📘` | jdk, scala, go, node, py, rb | — |
 | IaC | `iac:` | `🏗` | tf, tg | pulumi, ansible, packer |
 | Ops | `ops:` | `📦` | docker, helm, k8s, k9s | — |
-| AI CLI | `ai:` | `🤖` | claude, codex, gemini, copilot, cursor | grok, deepseek, aider |
+| AI CLI | `ai:` | `🤖` | claude, codex, gemini, copilot, cursor | — |
 
 ### Prompt Layout
 
@@ -58,9 +58,6 @@ Each tool gets a `*_prompt_info()` function following the existing pattern:
 | `gemini_prompt_info` | `gemini --version` | already clean |
 | `copilot_prompt_info` | `gh copilot --version` | strip "GitHub Copilot CLI " and trailing dot |
 | `cursor_prompt_info` | `cursor --version` | first line only |
-| `grok_prompt_info` | `grok --version` | stub — returns empty if not installed |
-| `deepseek_prompt_info` | `deepseek --version` | stub — returns empty if not installed |
-| `aider_prompt_info` | `aider --version` | stub — returns empty if not installed |
 | `pulumi_prompt_info` | `pulumi version` | stub — returns empty if not installed |
 | `ansible_prompt_info` | `ansible --version` | stub — first line, strip "ansible " prefix |
 | `packer_prompt_info` | `packer version` | stub — first line, strip "Packer v" |
@@ -87,17 +84,28 @@ Four row functions aggregate their category's tools:
 lang_row_info()  # collects: java, scala, go, node, python, ruby
 iac_row_info()   # collects: terraform, terragrunt, pulumi, ansible, packer
 ops_row_info()   # collects: docker, helm, kubectl, k9s
-ai_row_info()    # collects: claude, codex, gemini, copilot, cursor, grok, deepseek, aider
+ai_row_info()    # collects: claude, codex, gemini, copilot, cursor
 ```
 
 Each row function:
-1. Collects output from all its tool functions
+1. Collects output from all its tool functions into an array of `[label:version]` strings
 2. If all are empty, returns nothing (no label, no line)
-3. If any have output, prepends the category label (based on current label style) and returns the assembled line
+3. If `PROMPT_ORDER_MODE=alpha`, sorts the array alphabetically by tool label
+4. If `PROMPT_ORDER_MODE=fixed` (default), preserves the hardcoded order
+5. Prepends the category label (based on current label style) and returns the assembled line
+
+**Fixed order (default):**
+
+| Category | Order | Rationale |
+|---|---|---|
+| lang | jdk, scala, go, node, py, rb | JVM langs first, then by ecosystem |
+| iac | tf, tg, pulumi, ansible, packer | terraform/terragrunt paired, then others |
+| ops | docker, helm, k8s, k9s | build → deploy → manage → monitor |
+| ai | claude, codex, gemini, copilot, cursor | by market prominence |
 
 ### Configuration System
 
-Four configuration functions, all taking effect immediately:
+Five configuration functions, all taking effect immediately:
 
 #### `prompt_theme <name>`
 
@@ -135,6 +143,13 @@ Toggle version string cleanup:
 - `clean` (default) — normalized semver-like output
 - `raw` — display tool output as-is
 
+#### `prompt_order <mode>`
+
+Toggle tool ordering within each category row:
+
+- `fixed` (default) — hardcoded logical order (see table above)
+- `alpha` — alphabetical by tool label
+
 ### Configuration Variables
 
 All configuration state is stored in shell variables:
@@ -145,6 +160,7 @@ PROMPT_TOOL_COLOR=yellow     # tool name color
 PROMPT_VERSION_COLOR=magenta # version number color
 PROMPT_LABEL_STYLE=text      # text|emoji|none
 PROMPT_VERSION_MODE=clean    # clean|raw
+PROMPT_ORDER_MODE=fixed      # fixed|alpha
 ```
 
 Users can set these directly in `.zshrc` or use the functions interactively.
@@ -167,7 +183,7 @@ Code organization within the file:
 2. `_clean_version` helper
 3. `_update_theme_colors` helper (sets all PREFIX/SUFFIX vars from config vars)
 4. Existing language functions (unchanged API, colors now dynamic)
-5. New tool version functions (terraform, terragrunt, docker, helm, kubectl, k9s, claude, codex, gemini, copilot, cursor, grok, deepseek, aider, pulumi, ansible, packer)
+5. New tool version functions (terraform, terragrunt, docker, helm, kubectl, k9s, claude, codex, gemini, copilot, cursor, pulumi, ansible, packer)
 6. Row functions (lang, iac, ops, ai)
 7. Configuration functions (prompt_theme, prompt_colors, prompt_labels, prompt_versions)
 8. Updated prompt functions (prompt_one through prompt_four)
