@@ -211,6 +211,75 @@ function cursor_prompt_info() {
   fi
 }
 
+# --- Row functions ---
+
+# Helper: build a row from tool outputs, applying label and ordering
+function _build_row() {
+  local category="$1"
+  shift
+  local -a items=()
+
+  while [[ $# -gt 0 ]]; do
+    local output="$1"
+    if [[ -n "$output" ]]; then
+      items+=("$output")
+    fi
+    shift
+  done
+
+  [[ ${#items[@]} -eq 0 ]] && return
+
+  if [[ "$PROMPT_ORDER_MODE" == "alpha" ]]; then
+    # Strip color codes for sorting, then restore. Use a simple approach:
+    # sort by the text between first [ and first : in each item
+    items=($(printf '%s\n' "${items[@]}" | sort -t'[' -k2))
+  fi
+
+  local label=""
+  case "$PROMPT_LABEL_STYLE" in
+    text)
+      # Pad labels to 5 chars (length of "lang:") so brackets align
+      local -A text_labels=(lang "lang:" iac "iac: " ops "ops: " ai "ai:  ")
+      if [[ "$TERM" != "dumb" ]] && [[ "$DISABLE_LS_COLORS" != "true" ]]; then
+        label="%{$fg[$PROMPT_LABEL_COLOR]%}${text_labels[$category]}%{$reset_color%}"
+      else
+        label="${text_labels[$category]}"
+      fi
+      ;;
+    emoji)
+      local -A emoji_labels=(lang "📘" iac "🏗" ops "📦" ai "🤖")
+      label="${emoji_labels[$category]}"
+      ;;
+    none) label="" ;;
+  esac
+
+  echo "${label} ${(j: :)items}"
+}
+
+function lang_row_info() {
+  _build_row lang \
+    "$(java_prompt_info)" "$(scala_prompt_info)" "$(go_prompt_info)" \
+    "$(node_prompt_info)" "$(python_prompt_info)" "$(ruby_prompt_info)"
+}
+
+function iac_row_info() {
+  _build_row iac \
+    "$(terraform_prompt_info)" "$(terragrunt_prompt_info)" \
+    "$(pulumi_prompt_info)" "$(ansible_prompt_info)" "$(packer_prompt_info)"
+}
+
+function ops_row_info() {
+  _build_row ops \
+    "$(docker_prompt_info)" "$(helm_prompt_info)" \
+    "$(kubectl_prompt_info)" "$(k9s_prompt_info)"
+}
+
+function ai_row_info() {
+  _build_row ai \
+    "$(claude_prompt_info)" "$(codex_prompt_info)" \
+    "$(gemini_prompt_info)" "$(copilot_prompt_info)" "$(cursor_prompt_info)"
+}
+
 function return_prompt_info() {
   echo "%(?.$ZSH_THEME_RETURN_PROMPT_SUCCESS_PREFIX$ZSH_THEME_RETURN_PROMPT_SUCCESS$ZSH_THEME_RETURN_PROMPT_SUCCESS_SUFFIX.$ZSH_THEME_RETURN_PROMPT_ERROR_PREFIX$ZSH_THEME_RETURN_PROMPT_ERROR$ZSH_THEME_RETURN_PROMPT_ERROR_SUFFIX)"
 }

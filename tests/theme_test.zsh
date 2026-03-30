@@ -103,5 +103,33 @@ if command -v gemini >/dev/null 2>&1; then
 fi
 
 echo ""
+echo "=== Row function tests ==="
+PROMPT_LABEL_STYLE=text
+PROMPT_ORDER_MODE=fixed
+
+# lang row should produce output (at least one lang is installed)
+local lang_out="$(lang_row_info)"
+assert_eq "lang row non-empty" true "$([[ -n "$lang_out" ]] && echo true || echo false)"
+assert_eq "lang row has label" true "$([[ "$lang_out" == *'lang:'* ]] && echo true || echo false)"
+
+# Test alpha ordering
+PROMPT_ORDER_MODE=alpha
+local lang_alpha="$(lang_row_info)"
+assert_eq "lang alpha has label" true "$([[ "$lang_alpha" == *'lang:'* ]] && echo true || echo false)"
+
+# Test no-label mode
+PROMPT_LABEL_STYLE=none
+local lang_nolabel="$(lang_row_info)"
+assert_eq "lang no label" true "$([[ ! "$lang_nolabel" == *'lang:'* ]] && echo true || echo false)"
+
+# Test empty row (mock missing category by testing _build_row directly)
+local empty_row="$(_build_row iac "" "" "" "" "")"
+assert_empty "empty row produces nothing" "$empty_row"
+
+# Reset
+PROMPT_LABEL_STYLE=text
+PROMPT_ORDER_MODE=fixed
+
+echo ""
 echo "=== Results: $PASS passed, $FAIL failed ==="
 [[ $FAIL -eq 0 ]] && exit 0 || exit 1
