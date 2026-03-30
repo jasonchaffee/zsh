@@ -40,9 +40,62 @@ jasonchaffee/zsh path:themes/jasonchaffee
 
 ## Theme
 
-`jasonchaffee` - Custom prompt showing:
-- Programming language versions (Java, Scala, Go, Node, Python, Ruby)
-- Git/SVN branch and status
-- Current directory, time, user privilege indicator
+`jasonchaffee` - Custom prompt with categorized tool versions:
 
-Use `prompt_set 1|2|3|4` to switch between prompt layouts.
+| Category | Label | Tools shown |
+|---|---|---|
+| Languages | `lang:` | Java, Scala, Go, Node, Python, Ruby |
+| IaC | `iac:` | Terraform, Terragrunt (+ Pulumi, Ansible, Packer stubs) |
+| Ops | `ops:` | Docker, Helm, kubectl, k9s |
+| AI CLI | `ai:` | Claude Code, Codex, Gemini CLI, GitHub Copilot, Cursor |
+
+Plus Git/SVN branch and status, current directory, time, and user privilege indicator.
+Only installed tools are shown — missing tools are silently hidden.
+
+### Prompt Layouts
+
+Use `prompt_set 1|2|3|4` to switch layouts:
+- `1` — single line (all categories inline)
+- `2` — user/host on first line, tools + path below
+- `3` — tools on top lines, path below (default)
+- `4` — tools on top, user/host + path below
+
+### Configuration
+
+All config functions take effect immediately. Add to `.zshrc` to persist.
+
+**Color themes:**
+```zsh
+prompt_theme default   # cyan/yellow/magenta
+prompt_theme ocean     # blue/cyan/green
+prompt_theme warm      # red/yellow/green
+prompt_theme mono      # white/white/white
+prompt_theme matrix    # green/green/cyan
+```
+
+**Individual colors** (red, green, yellow, blue, magenta, cyan, white):
+```zsh
+prompt_colors label blue       # change category label color
+prompt_colors tool cyan        # change tool name color
+prompt_colors version green    # change version color
+prompt_colors cyan yellow magenta  # set all three
+```
+
+**Label styles:**
+```zsh
+prompt_labels text    # lang: iac: ops: ai: (default)
+prompt_labels emoji   # 📘 🏗 📦 🤖
+prompt_labels none    # no labels
+```
+
+**Version display:**
+```zsh
+prompt_versions clean  # strip noise (default)
+prompt_versions raw    # show raw output
+```
+
+**Tool ordering:**
+```zsh
+prompt_order fixed   # logical grouping (default)
+prompt_order alpha   # alphabetical within each category
+```
