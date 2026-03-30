@@ -9,6 +9,37 @@
 # ⬅ ⬆ ⬇ ⬈ ⬉ ⬊ ⬋ ⬒ ⬓ ⬔ ⬕ ⬖ ⬗ ⬘ ⬙ ⬟  ⬤ 〒 ǀ ǁ ǂ ĭ Ť Ŧ
 #  ±  ➦ ✘ ⚡ ⚙
 
+# Configuration defaults
+PROMPT_LABEL_COLOR=${PROMPT_LABEL_COLOR:-cyan}
+PROMPT_TOOL_COLOR=${PROMPT_TOOL_COLOR:-yellow}
+PROMPT_VERSION_COLOR=${PROMPT_VERSION_COLOR:-magenta}
+PROMPT_LABEL_STYLE=${PROMPT_LABEL_STYLE:-text}
+PROMPT_VERSION_MODE=${PROMPT_VERSION_MODE:-clean}
+PROMPT_ORDER_MODE=${PROMPT_ORDER_MODE:-fixed}
+
+# Known noise suffixes to strip in clean mode (not pre-release identifiers)
+_KNOWN_NOISE_SUFFIXES=(-rd -dispatcher)
+
+function _clean_version() {
+  local ver="$1"
+  [[ -z "$ver" ]] && return
+  if [[ "$PROMPT_VERSION_MODE" == "raw" ]]; then
+    echo "$ver"
+    return
+  fi
+  # Strip leading v/V
+  ver="${ver#[vV]}"
+  # Strip +build metadata
+  ver="${ver%%+*}"
+  # Strip known noise suffixes
+  for suffix in "${_KNOWN_NOISE_SUFFIXES[@]}"; do
+    ver="${ver%$suffix}"
+  done
+  # Strip trailing dots
+  ver="${ver%.}"
+  echo "$ver"
+}
+
 function java_prompt_prefix() {
   if command -v javac >/dev/null 2>&1; then
     echo "jdk"
@@ -19,41 +50,48 @@ function java_prompt_prefix() {
 
 function java_prompt_info() {
   if command -v java >/dev/null 2>&1; then
-    echo "$ZSH_THEME_JAVA_PROMPT_PREFIX$(java -version 2>&1 | grep -i -e 'java version' -e 'openjdk version' | awk '{print $3}' | tr -d \")$ZSH_THEME_JAVA_PROMPT_SUFFIX"
+    local ver="$(java -version 2>&1 | grep -i -e 'java version' -e 'openjdk version' | awk '{print $3}' | tr -d \")"
+    echo "$ZSH_THEME_JAVA_PROMPT_PREFIX$(_clean_version "$ver")$ZSH_THEME_JAVA_PROMPT_SUFFIX"
   fi
 }
 
 function go_prompt_info() {
   if command -v go >/dev/null 2>&1; then
-    echo "$ZSH_THEME_GO_PROMPT_PREFIX$(go version 2>&1 | grep 'go version' | awk '{print $3}' | tr -d \go | tr -d \")$ZSH_THEME_GO_PROMPT_SUFFIX"
+    local ver="$(go version 2>&1 | grep 'go version' | awk '{print $3}' | tr -d \go | tr -d \")"
+    echo "$ZSH_THEME_GO_PROMPT_PREFIX$(_clean_version "$ver")$ZSH_THEME_GO_PROMPT_SUFFIX"
   fi
 }
 
 function node_prompt_info() {
   if command -v node >/dev/null 2>&1; then
     if node --version >/dev/null 2>&1; then
-      echo "$ZSH_THEME_NODE_PROMPT_PREFIX$(node --version)$ZSH_THEME_NODE_PROMPT_SUFFIX"
+      local ver="$(node --version)"
+      echo "$ZSH_THEME_NODE_PROMPT_PREFIX$(_clean_version "$ver")$ZSH_THEME_NODE_PROMPT_SUFFIX"
     fi
   fi
 }
 
 function python_prompt_info() {
   if command -v python3 >/dev/null 2>&1; then
-    echo "$ZSH_THEME_PYTHON_PROMPT_PREFIX$(python3 -V 2>&1 | grep 'Python' | awk '{print $2}' | tr -d \")$ZSH_THEME_PYTHON_PROMPT_SUFFIX"
+    local ver="$(python3 -V 2>&1 | grep 'Python' | awk '{print $2}' | tr -d \")"
+    echo "$ZSH_THEME_PYTHON_PROMPT_PREFIX$(_clean_version "$ver")$ZSH_THEME_PYTHON_PROMPT_SUFFIX"
   elif command -v python >/dev/null 2>&1; then
-    echo "$ZSH_THEME_PYTHON_PROMPT_PREFIX$(python -V 2>&1 | grep 'Python' | awk '{print $2}' | tr -d \")$ZSH_THEME_PYTHON_PROMPT_SUFFIX"
+    local ver="$(python -V 2>&1 | grep 'Python' | awk '{print $2}' | tr -d \")"
+    echo "$ZSH_THEME_PYTHON_PROMPT_PREFIX$(_clean_version "$ver")$ZSH_THEME_PYTHON_PROMPT_SUFFIX"
   fi
 }
 
 function ruby_prompt_info() {
   if command -v ruby >/dev/null 2>&1; then
-    echo "$ZSH_THEME_RUBY_PROMPT_PREFIX$(ruby --version 2>&1 | grep 'ruby' | awk '{print $2}' | tr -d \")$ZSH_THEME_RUBY_PROMPT_SUFFIX"
+    local ver="$(ruby --version 2>&1 | grep 'ruby' | awk '{print $2}' | tr -d \")"
+    echo "$ZSH_THEME_RUBY_PROMPT_PREFIX$(_clean_version "$ver")$ZSH_THEME_RUBY_PROMPT_SUFFIX"
   fi
 }
 
 function scala_prompt_info() {
   if command -v scala >/dev/null 2>&1; then
-    echo "$ZSH_THEME_SCALA_PROMPT_PREFIX$(scala -version 2>&1 | grep 'Scala code runner version' | awk '{print $5}' | tr -d \")$ZSH_THEME_SCALA_PROMPT_SUFFIX"
+    local ver="$(scala -version 2>&1 | grep 'Scala code runner version' | awk '{print $5}' | tr -d \")"
+    echo "$ZSH_THEME_SCALA_PROMPT_PREFIX$(_clean_version "$ver")$ZSH_THEME_SCALA_PROMPT_SUFFIX"
   fi
 }
 
