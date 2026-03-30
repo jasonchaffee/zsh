@@ -175,5 +175,24 @@ prompt_versions clean
 prompt_order fixed
 
 echo ""
+echo "=== Prompt integration tests ==="
+prompt_theme default
+prompt_labels text
+
+# Verify prompt template strings contain row function calls
+local p3="$(prompt_three)"
+assert_eq "prompt_three has lang_row_info" true "$( [[ "$p3" == *'lang_row_info'* ]] && echo true || echo false )"
+assert_eq "prompt_three has iac_row_info" true "$( [[ "$p3" == *'iac_row_info'* ]] && echo true || echo false )"
+assert_eq "prompt_three has ops_row_info" true "$( [[ "$p3" == *'ops_row_info'* ]] && echo true || echo false )"
+assert_eq "prompt_three has ai_row_info" true "$( [[ "$p3" == *'ai_row_info'* ]] && echo true || echo false )"
+
+# Verify old individual calls are removed
+assert_eq "prompt_three no java_prompt_info" true "$( [[ "$p3" != *'java_prompt_info'* ]] && echo true || echo false )"
+
+# Verify rows actually render (functional test)
+local lang_rendered="$(lang_row_info)"
+assert_eq "lang row renders" true "$( [[ -n "$lang_rendered" ]] && echo true || echo false )"
+
+echo ""
 echo "=== Results: $PASS passed, $FAIL failed ==="
 [[ $FAIL -eq 0 ]] && exit 0 || exit 1

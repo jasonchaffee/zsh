@@ -440,22 +440,28 @@ function host_prompt_info() {
   echo "$ZSH_THEME_HOST_PROMPT_PREFIX$ZSH_THEME_HOST_PROMPT$ZSH_THEME_HOST_PROMPT_SUFFIX"
 }
 
+# Helper: emit string with leading newline only if non-empty
+function _nl_if() {
+  local output="$1"
+  [[ -n "$output" ]] && echo "\n${output}"
+}
+
 function prompt_one() {
-  echo '$(return_prompt_info)$(java_prompt_info)$(scala_prompt_info)$(go_prompt_info)$(node_prompt_info)$(python_prompt_info)$(ruby_prompt_info)$(pwd_prompt_info)$(git_prompt_info)$(svn_prompt_info)$(user_privilege_prompt_info)'
+  echo '$(return_prompt_info)$(lang_row_info)$(iac_row_info)$(ops_row_info)$(ai_row_info)$(pwd_prompt_info)$(git_prompt_info)$(svn_prompt_info)$(user_privilege_prompt_info)'
 }
 
 function prompt_two() {
   echo '$(user_prompt_info)$(host_prompt_info)$(pwd_prompt_info)$(git_prompt_info)$(svn_prompt_info)
-$(return_prompt_info)$(java_prompt_info)$(scala_prompt_info)$(go_prompt_info)$(node_prompt_info)$(python_prompt_info)$(ruby_prompt_info)$(user_privilege_prompt_info)'
+$(return_prompt_info)$(lang_row_info)$(_nl_if "$(iac_row_info)")$(_nl_if "$(ops_row_info)")$(_nl_if "$(ai_row_info)")$(user_privilege_prompt_info)'
 }
 
 function prompt_three() {
-  echo '$(java_prompt_info)$(scala_prompt_info)$(go_prompt_info)$(node_prompt_info)$(python_prompt_info)$(ruby_prompt_info)
+  echo '$(lang_row_info)$(_nl_if "$(iac_row_info)")$(_nl_if "$(ops_row_info)")$(_nl_if "$(ai_row_info)")
 $(return_prompt_info)$(pwd_prompt_info)$(git_prompt_info)$(svn_prompt_info)$(user_privilege_prompt_info)'
 }
 
 function prompt_four() {
-  echo '$(java_prompt_info)$(scala_prompt_info)$(go_prompt_info)$(node_prompt_info)$(python_prompt_info)$(ruby_prompt_info)
+  echo '$(lang_row_info)$(_nl_if "$(iac_row_info)")$(_nl_if "$(ops_row_info)")$(_nl_if "$(ai_row_info)")
 $(return_prompt_info)$(user_prompt_info)$(host_prompt_info)$(pwd_prompt_info)$(git_prompt_info)$(svn_prompt_info)$(user_privilege_prompt_info)'
 }
 
@@ -474,6 +480,7 @@ function prompt_set() {
 }
 
 PROMPT=$(prompt_three)
+_update_theme_colors
 
 RPROMPT='$(git_prompt_status)$(svn_dirty)$(svn_dirty_pwd)$(time_prompt_info)$(time_period_prompt_info)'
 
