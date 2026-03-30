@@ -490,7 +490,8 @@ function _build_row() {
   local label=""
   case "$PROMPT_LABEL_STYLE" in
     text)
-      local -A text_labels=(lang "lang:" iac "iac:" ops "ops:" ai "ai:")
+      # Pad labels to 5 chars (length of "lang:") so brackets align
+      local -A text_labels=(lang "lang:" iac "iac: " ops "ops: " ai "ai:  ")
       if [[ "$TERM" != "dumb" ]] && [[ "$DISABLE_LS_COLORS" != "true" ]]; then
         label="%{$fg[$PROMPT_LABEL_COLOR]%}${text_labels[$category]}%{$reset_color%}"
       else
