@@ -671,6 +671,22 @@ else
     ZSH_THEME_SCALA_PROMPT_SUFFIX=""
   fi
 
+  # New tool PREFIX/SUFFIX for dumb terminals
+  local -A new_tools=(TERRAFORM terraform TERRAGRUNT terragrunt DOCKER docker
+    HELM helm KUBECTL kubectl K9S k9s CLAUDE claude CODEX codex
+    GEMINI gemini COPILOT gh CURSOR cursor PULUMI pulumi ANSIBLE ansible PACKER packer)
+  for t cmd in ${(kv)new_tools}; do
+    local pref_var="${t}_PROMPT_PREFIX"
+    local label="${(P)pref_var}"
+    if command -v "$cmd" >/dev/null 2>&1; then
+      eval "ZSH_THEME_${t}_PROMPT_PREFIX=\" [${label}:\""
+      eval "ZSH_THEME_${t}_PROMPT_SUFFIX=\"]\""
+    else
+      eval "ZSH_THEME_${t}_PROMPT_PREFIX=\"\""
+      eval "ZSH_THEME_${t}_PROMPT_SUFFIX=\"\""
+    fi
+  done
+
   ZSH_THEME_USER_PROMPT_SUPER_PREFIX=" "
   ZSH_THEME_USER_PROMPT_SUPER="⚡ λ"
   ZSH_THEME_USER_PROMPT_SUPER_SUFFIX=" "
