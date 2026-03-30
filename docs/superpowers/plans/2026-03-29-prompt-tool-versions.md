@@ -199,13 +199,16 @@ Add after the existing language functions in the theme file:
 
 function terraform_prompt_info() {
   if command -v terraform >/dev/null 2>&1; then
-    local ver="$(terraform version 2>&1 | head -1 | awk '{print $2}')"
+    # Use -json for ~4x faster execution (avoids update check)
+    # Output: {"terraform_version":"1.14.8",...}
+    local ver="$(terraform version -json 2>&1 | grep terraform_version | awk -F'"' '{print $4}')"
     echo "$ZSH_THEME_TERRAFORM_PROMPT_PREFIX$(_clean_version "$ver")$ZSH_THEME_TERRAFORM_PROMPT_SUFFIX"
   fi
 }
 
 function terragrunt_prompt_info() {
   if command -v terragrunt >/dev/null 2>&1; then
+    # Output: "terragrunt version v0.99.5"
     local ver="$(terragrunt --version 2>&1 | head -1 | awk '{print $NF}')"
     echo "$ZSH_THEME_TERRAGRUNT_PROMPT_PREFIX$(_clean_version "$ver")$ZSH_THEME_TERRAGRUNT_PROMPT_SUFFIX"
   fi
@@ -290,6 +293,7 @@ Run: `zsh tests/theme_test.zsh`
 
 function docker_prompt_info() {
   if command -v docker >/dev/null 2>&1; then
+    # Output: "Docker version 27.5.1-rd, build 0c97515" (client-side, no daemon)
     local ver="$(docker --version 2>&1 | awk '{print $3}' | tr -d ',')"
     echo "$ZSH_THEME_DOCKER_PROMPT_PREFIX$(_clean_version "$ver")$ZSH_THEME_DOCKER_PROMPT_SUFFIX"
   fi
@@ -297,6 +301,7 @@ function docker_prompt_info() {
 
 function helm_prompt_info() {
   if command -v helm >/dev/null 2>&1; then
+    # Output: "v3.17.1+g980d8ac"
     local ver="$(helm version --short 2>&1)"
     echo "$ZSH_THEME_HELM_PROMPT_PREFIX$(_clean_version "$ver")$ZSH_THEME_HELM_PROMPT_SUFFIX"
   fi
@@ -304,13 +309,15 @@ function helm_prompt_info() {
 
 function kubectl_prompt_info() {
   if command -v kubectl >/dev/null 2>&1; then
-    local ver="$(kubectl version --client 2>&1 | head -1 | awk '{print $3}')"
+    # Output format varies: v1.28+ uses "Client Version: vX.Y.Z"
+    local ver="$(kubectl version --client 2>&1 | head -1 | awk '{print $NF}')"
     echo "$ZSH_THEME_KUBECTL_PROMPT_PREFIX$(_clean_version "$ver")$ZSH_THEME_KUBECTL_PROMPT_SUFFIX"
   fi
 }
 
 function k9s_prompt_info() {
   if command -v k9s >/dev/null 2>&1; then
+    # Output (--short is still multi-line): "Version  v0.50.18\nCommit ...\nDate ..."
     local ver="$(k9s version --short 2>&1 | grep 'Version' | awk '{print $2}')"
     echo "$ZSH_THEME_K9S_PROMPT_PREFIX$(_clean_version "$ver")$ZSH_THEME_K9S_PROMPT_SUFFIX"
   fi
@@ -364,13 +371,15 @@ fi
 
 function claude_prompt_info() {
   if command -v claude >/dev/null 2>&1; then
-    local ver="$(claude --version 2>&1 | head -1)"
+    # Output: "2.1.87 (Claude Code)" — extract just the version number
+    local ver="$(claude --version 2>&1 | head -1 | awk '{print $1}')"
     echo "$ZSH_THEME_CLAUDE_PROMPT_PREFIX$(_clean_version "$ver")$ZSH_THEME_CLAUDE_PROMPT_SUFFIX"
   fi
 }
 
 function codex_prompt_info() {
   if command -v codex >/dev/null 2>&1; then
+    # Output: "codex-cli 0.117.0"
     local ver="$(codex --version 2>&1 | head -1 | awk '{print $NF}')"
     echo "$ZSH_THEME_CODEX_PROMPT_PREFIX$(_clean_version "$ver")$ZSH_THEME_CODEX_PROMPT_SUFFIX"
   fi
@@ -384,7 +393,9 @@ function gemini_prompt_info() {
 }
 
 function copilot_prompt_info() {
-  if command -v gh >/dev/null 2>&1 && gh copilot --version >/dev/null 2>&1; then
+  # Use 'gh extension list' for detection (~93ms vs ~862ms for 'gh copilot --version')
+  if command -v gh >/dev/null 2>&1 && gh extension list 2>/dev/null | grep -q copilot; then
+    # Output: "GitHub Copilot CLI 0.0.422."
     local ver="$(gh copilot --version 2>&1 | head -1 | awk '{print $NF}')"
     echo "$ZSH_THEME_COPILOT_PROMPT_PREFIX$(_clean_version "$ver")$ZSH_THEME_COPILOT_PROMPT_SUFFIX"
   fi
@@ -392,6 +403,7 @@ function copilot_prompt_info() {
 
 function cursor_prompt_info() {
   if command -v cursor >/dev/null 2>&1; then
+    # Output: "2.6.21\n<commit-hash>\n<arch>" — head -1 grabs just the version
     local ver="$(cursor --version 2>&1 | head -1)"
     echo "$ZSH_THEME_CURSOR_PROMPT_PREFIX$(_clean_version "$ver")$ZSH_THEME_CURSOR_PROMPT_SUFFIX"
   fi
@@ -615,7 +627,7 @@ function _update_theme_colors() {
 
     # Update existing language PREFIX/SUFFIX
     if command -v java >/dev/null 2>&1; then
-      ZSH_THEME_JAVA_PROMPT_PREFIX=" [${tc}$(java_prompt_prefix)${rc}:${vc}% "
+      ZSH_THEME_JAVA_PROMPT_PREFIX=" [${tc}$(java_prompt_prefix)${rc}:${vc}"
       ZSH_THEME_JAVA_PROMPT_SUFFIX="${rc}]"
     else
       ZSH_THEME_JAVA_PROMPT_PREFIX=""

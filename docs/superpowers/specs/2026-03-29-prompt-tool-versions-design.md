@@ -39,7 +39,7 @@ Empty categories produce no output (no empty label lines).
 
 ### Known Risks
 
-- **Slow commands:** Tools like `docker --version` can hang if the Docker daemon is unresponsive. No timeout mechanism is included in this iteration. If this becomes a problem, async version fetching or caching can be added later.
+- **Slow commands:** `terraform version` can take 2-3s in directories with `.terraform/` state (mitigated by using `terraform version -json` which is ~4x faster). `gh copilot --version` takes ~860ms (mitigated by using `gh extension list` for detection at ~93ms). All other version commands are client-side and complete in <100ms. If overall prompt latency becomes an issue, async version fetching or caching can be added later.
 
 ### New Version Functions
 
