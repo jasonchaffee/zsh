@@ -95,6 +95,46 @@ function scala_prompt_info() {
   fi
 }
 
+# --- IaC version functions ---
+
+function terraform_prompt_info() {
+  if command -v terraform >/dev/null 2>&1; then
+    # Use -json for ~4x faster execution (avoids update check)
+    # Output: {"terraform_version":"1.14.8",...}
+    local ver="$(terraform version -json 2>&1 | grep terraform_version | awk -F'"' '{print $4}')"
+    echo "$ZSH_THEME_TERRAFORM_PROMPT_PREFIX$(_clean_version "$ver")$ZSH_THEME_TERRAFORM_PROMPT_SUFFIX"
+  fi
+}
+
+function terragrunt_prompt_info() {
+  if command -v terragrunt >/dev/null 2>&1; then
+    # Output: "terragrunt version v0.99.5"
+    local ver="$(terragrunt --version 2>&1 | head -1 | awk '{print $NF}')"
+    echo "$ZSH_THEME_TERRAGRUNT_PROMPT_PREFIX$(_clean_version "$ver")$ZSH_THEME_TERRAGRUNT_PROMPT_SUFFIX"
+  fi
+}
+
+function pulumi_prompt_info() {
+  if command -v pulumi >/dev/null 2>&1; then
+    local ver="$(pulumi version 2>&1 | head -1)"
+    echo "$ZSH_THEME_PULUMI_PROMPT_PREFIX$(_clean_version "$ver")$ZSH_THEME_PULUMI_PROMPT_SUFFIX"
+  fi
+}
+
+function ansible_prompt_info() {
+  if command -v ansible >/dev/null 2>&1; then
+    local ver="$(ansible --version 2>&1 | head -1 | awk '{print $NF}' | tr -d '[]')"
+    echo "$ZSH_THEME_ANSIBLE_PROMPT_PREFIX$(_clean_version "$ver")$ZSH_THEME_ANSIBLE_PROMPT_SUFFIX"
+  fi
+}
+
+function packer_prompt_info() {
+  if command -v packer >/dev/null 2>&1; then
+    local ver="$(packer version 2>&1 | head -1 | awk '{print $2}')"
+    echo "$ZSH_THEME_PACKER_PROMPT_PREFIX$(_clean_version "$ver")$ZSH_THEME_PACKER_PROMPT_SUFFIX"
+  fi
+}
+
 function return_prompt_info() {
   echo "%(?.$ZSH_THEME_RETURN_PROMPT_SUCCESS_PREFIX$ZSH_THEME_RETURN_PROMPT_SUCCESS$ZSH_THEME_RETURN_PROMPT_SUCCESS_SUFFIX.$ZSH_THEME_RETURN_PROMPT_ERROR_PREFIX$ZSH_THEME_RETURN_PROMPT_ERROR$ZSH_THEME_RETURN_PROMPT_ERROR_SUFFIX)"
 }

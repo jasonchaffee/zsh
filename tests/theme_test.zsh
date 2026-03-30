@@ -55,5 +55,18 @@ PROMPT_VERSION_MODE=raw
 assert_eq "raw mode passthrough" "v1.2.3+build" "$(_clean_version "v1.2.3+build")"
 
 echo ""
+echo "=== IaC version function tests ==="
+PROMPT_VERSION_MODE=clean
+if command -v terraform >/dev/null 2>&1; then
+  local tf_out="$(terraform_prompt_info)"
+  assert_eq "terraform non-empty" true "$( [[ -n "$tf_out" ]] && echo true || echo false )"
+  assert_eq "terraform cleaned" true "$( [[ "$tf_out" != *'Terraform'* ]] && echo true || echo false )"
+fi
+if command -v terragrunt >/dev/null 2>&1; then
+  local tg_out="$(terragrunt_prompt_info)"
+  assert_eq "terragrunt non-empty" true "$( [[ -n "$tg_out" ]] && echo true || echo false )"
+fi
+
+echo ""
 echo "=== Results: $PASS passed, $FAIL failed ==="
 [[ $FAIL -eq 0 ]] && exit 0 || exit 1
