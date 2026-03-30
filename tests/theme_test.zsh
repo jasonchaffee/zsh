@@ -131,5 +131,49 @@ PROMPT_LABEL_STYLE=text
 PROMPT_ORDER_MODE=fixed
 
 echo ""
+echo "=== Configuration function tests ==="
+
+prompt_theme default
+assert_eq "theme default label" "cyan" "$PROMPT_LABEL_COLOR"
+assert_eq "theme default tool" "yellow" "$PROMPT_TOOL_COLOR"
+assert_eq "theme default version" "magenta" "$PROMPT_VERSION_COLOR"
+
+prompt_theme ocean
+assert_eq "theme ocean label" "blue" "$PROMPT_LABEL_COLOR"
+assert_eq "theme ocean tool" "cyan" "$PROMPT_TOOL_COLOR"
+assert_eq "theme ocean version" "green" "$PROMPT_VERSION_COLOR"
+
+prompt_colors label red
+assert_eq "colors slot override" "red" "$PROMPT_LABEL_COLOR"
+
+prompt_colors green yellow blue
+assert_eq "colors positional label" "green" "$PROMPT_LABEL_COLOR"
+assert_eq "colors positional tool" "yellow" "$PROMPT_TOOL_COLOR"
+assert_eq "colors positional version" "blue" "$PROMPT_VERSION_COLOR"
+
+prompt_labels emoji
+assert_eq "labels emoji" "emoji" "$PROMPT_LABEL_STYLE"
+
+prompt_versions raw
+assert_eq "versions raw" "raw" "$PROMPT_VERSION_MODE"
+
+prompt_order alpha
+assert_eq "order alpha" "alpha" "$PROMPT_ORDER_MODE"
+
+# Test invalid inputs return error
+prompt_theme bogus 2>/dev/null
+assert_eq "invalid theme returns error" "1" "$?"
+prompt_order bogus 2>/dev/null
+assert_eq "invalid order returns error" "1" "$?"
+prompt_labels bogus 2>/dev/null
+assert_eq "invalid labels returns error" "1" "$?"
+
+# Reset
+prompt_theme default
+prompt_labels text
+prompt_versions clean
+prompt_order fixed
+
+echo ""
 echo "=== Results: $PASS passed, $FAIL failed ==="
 [[ $FAIL -eq 0 ]] && exit 0 || exit 1

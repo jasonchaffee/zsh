@@ -280,6 +280,138 @@ function ai_row_info() {
     "$(gemini_prompt_info)" "$(copilot_prompt_info)" "$(cursor_prompt_info)"
 }
 
+# --- Configuration functions ---
+
+# Prefix constants for new tools
+TERRAFORM_PROMPT_PREFIX=tf
+TERRAGRUNT_PROMPT_PREFIX=tg
+DOCKER_PROMPT_PREFIX=docker
+HELM_PROMPT_PREFIX=helm
+KUBECTL_PROMPT_PREFIX=k8s
+K9S_PROMPT_PREFIX=k9s
+CLAUDE_PROMPT_PREFIX=claude
+CODEX_PROMPT_PREFIX=codex
+GEMINI_PROMPT_PREFIX=gemini
+COPILOT_PROMPT_PREFIX=copilot
+CURSOR_PROMPT_PREFIX=cursor
+PULUMI_PROMPT_PREFIX=pulumi
+ANSIBLE_PROMPT_PREFIX=ansible
+PACKER_PROMPT_PREFIX=packer
+
+function _update_theme_colors() {
+  if [[ "$TERM" != "dumb" ]] && [[ "$DISABLE_LS_COLORS" != "true" ]]; then
+    local tc="%{$fg[$PROMPT_TOOL_COLOR]%}"
+    local vc="%{$fg[$PROMPT_VERSION_COLOR]%}"
+    local rc="%{$reset_color%}"
+
+    # Update existing language PREFIX/SUFFIX
+    if command -v java >/dev/null 2>&1; then
+      ZSH_THEME_JAVA_PROMPT_PREFIX=" [${tc}$(java_prompt_prefix)${rc}:${vc}"
+      ZSH_THEME_JAVA_PROMPT_SUFFIX="${rc}]"
+    else
+      ZSH_THEME_JAVA_PROMPT_PREFIX=""
+      ZSH_THEME_JAVA_PROMPT_SUFFIX=""
+    fi
+    local -A lang_tools=(GO go NODE node SCALA scala PYTHON py RUBY rb)
+    local -A lang_cmds=(GO go NODE node SCALA scala PYTHON python3 RUBY ruby)
+    for uname label in ${(kv)lang_tools}; do
+      local cmd="${lang_cmds[$uname]}"
+      if command -v "$cmd" >/dev/null 2>&1; then
+        eval "ZSH_THEME_${uname}_PROMPT_PREFIX=\" [${tc}${label}${rc}:${vc}\""
+        eval "ZSH_THEME_${uname}_PROMPT_SUFFIX=\"${rc}]\""
+      else
+        eval "ZSH_THEME_${uname}_PROMPT_PREFIX=\"\""
+        eval "ZSH_THEME_${uname}_PROMPT_SUFFIX=\"\""
+      fi
+    done
+
+    # Set PREFIX/SUFFIX for all new tools
+    local -A new_tools=(TERRAFORM terraform TERRAGRUNT terragrunt DOCKER docker
+      HELM helm KUBECTL kubectl K9S k9s CLAUDE claude CODEX codex
+      GEMINI gemini COPILOT gh CURSOR cursor PULUMI pulumi ANSIBLE ansible PACKER packer)
+    for t cmd in ${(kv)new_tools}; do
+      local pref_var="${t}_PROMPT_PREFIX"
+      local label="${(P)pref_var}"
+      if command -v "$cmd" >/dev/null 2>&1; then
+        eval "ZSH_THEME_${t}_PROMPT_PREFIX=\" [${tc}${label}${rc}:${vc}\""
+        eval "ZSH_THEME_${t}_PROMPT_SUFFIX=\"${rc}]\""
+      else
+        eval "ZSH_THEME_${t}_PROMPT_PREFIX=\"\""
+        eval "ZSH_THEME_${t}_PROMPT_SUFFIX=\"\""
+      fi
+    done
+  else
+    # Dumb terminal — no colors, same guard logic
+    local -A new_tools=(TERRAFORM terraform TERRAGRUNT terragrunt DOCKER docker
+      HELM helm KUBECTL kubectl K9S k9s CLAUDE claude CODEX codex
+      GEMINI gemini COPILOT gh CURSOR cursor PULUMI pulumi ANSIBLE ansible PACKER packer)
+    for t cmd in ${(kv)new_tools}; do
+      local pref_var="${t}_PROMPT_PREFIX"
+      local label="${(P)pref_var}"
+      if command -v "$cmd" >/dev/null 2>&1; then
+        eval "ZSH_THEME_${t}_PROMPT_PREFIX=\" [${label}:\""
+        eval "ZSH_THEME_${t}_PROMPT_SUFFIX=\"]\""
+      else
+        eval "ZSH_THEME_${t}_PROMPT_PREFIX=\"\""
+        eval "ZSH_THEME_${t}_PROMPT_SUFFIX=\"\""
+      fi
+    done
+  fi
+}
+
+function prompt_theme() {
+  case "$1" in
+    default) PROMPT_LABEL_COLOR=cyan;  PROMPT_TOOL_COLOR=yellow; PROMPT_VERSION_COLOR=magenta ;;
+    ocean)   PROMPT_LABEL_COLOR=blue;  PROMPT_TOOL_COLOR=cyan;   PROMPT_VERSION_COLOR=green ;;
+    warm)    PROMPT_LABEL_COLOR=red;   PROMPT_TOOL_COLOR=yellow; PROMPT_VERSION_COLOR=green ;;
+    mono)    PROMPT_LABEL_COLOR=white; PROMPT_TOOL_COLOR=white;  PROMPT_VERSION_COLOR=white ;;
+    matrix)  PROMPT_LABEL_COLOR=green; PROMPT_TOOL_COLOR=green;  PROMPT_VERSION_COLOR=cyan ;;
+    *) echo "Usage: prompt_theme <default|ocean|warm|mono|matrix>"; return 1 ;;
+  esac
+  _update_theme_colors
+}
+
+function prompt_colors() {
+  case $# in
+    2)
+      case "$1" in
+        label)   PROMPT_LABEL_COLOR="$2" ;;
+        tool)    PROMPT_TOOL_COLOR="$2" ;;
+        version) PROMPT_VERSION_COLOR="$2" ;;
+        *) echo "Usage: prompt_colors <label|tool|version> <color>"; return 1 ;;
+      esac
+      ;;
+    3)
+      PROMPT_LABEL_COLOR="$1"
+      PROMPT_TOOL_COLOR="$2"
+      PROMPT_VERSION_COLOR="$3"
+      ;;
+    *) echo "Usage: prompt_colors <label|tool|version> <color>"; echo "       prompt_colors <label> <tool> <version>"; return 1 ;;
+  esac
+  _update_theme_colors
+}
+
+function prompt_labels() {
+  case "$1" in
+    text|emoji|none) PROMPT_LABEL_STYLE="$1" ;;
+    *) echo "Usage: prompt_labels <text|emoji|none>"; return 1 ;;
+  esac
+}
+
+function prompt_versions() {
+  case "$1" in
+    clean|raw) PROMPT_VERSION_MODE="$1" ;;
+    *) echo "Usage: prompt_versions <clean|raw>"; return 1 ;;
+  esac
+}
+
+function prompt_order() {
+  case "$1" in
+    fixed|alpha) PROMPT_ORDER_MODE="$1" ;;
+    *) echo "Usage: prompt_order <fixed|alpha>"; return 1 ;;
+  esac
+}
+
 function return_prompt_info() {
   echo "%(?.$ZSH_THEME_RETURN_PROMPT_SUCCESS_PREFIX$ZSH_THEME_RETURN_PROMPT_SUCCESS$ZSH_THEME_RETURN_PROMPT_SUCCESS_SUFFIX.$ZSH_THEME_RETURN_PROMPT_ERROR_PREFIX$ZSH_THEME_RETURN_PROMPT_ERROR$ZSH_THEME_RETURN_PROMPT_ERROR_SUFFIX)"
 }
