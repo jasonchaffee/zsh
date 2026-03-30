@@ -169,6 +169,48 @@ function k9s_prompt_info() {
   fi
 }
 
+# --- AI CLI version functions ---
+
+function claude_prompt_info() {
+  if command -v claude >/dev/null 2>&1; then
+    # Output: "2.1.87 (Claude Code)" — extract just the version number
+    local ver="$(claude --version 2>&1 | head -1 | awk '{print $1}')"
+    echo "$ZSH_THEME_CLAUDE_PROMPT_PREFIX$(_clean_version "$ver")$ZSH_THEME_CLAUDE_PROMPT_SUFFIX"
+  fi
+}
+
+function codex_prompt_info() {
+  if command -v codex >/dev/null 2>&1; then
+    # Output: "codex-cli 0.117.0"
+    local ver="$(codex --version 2>&1 | head -1 | awk '{print $NF}')"
+    echo "$ZSH_THEME_CODEX_PROMPT_PREFIX$(_clean_version "$ver")$ZSH_THEME_CODEX_PROMPT_SUFFIX"
+  fi
+}
+
+function gemini_prompt_info() {
+  if command -v gemini >/dev/null 2>&1; then
+    local ver="$(gemini --version 2>&1 | head -1)"
+    echo "$ZSH_THEME_GEMINI_PROMPT_PREFIX$(_clean_version "$ver")$ZSH_THEME_GEMINI_PROMPT_SUFFIX"
+  fi
+}
+
+function copilot_prompt_info() {
+  # Use 'gh extension list' for detection (~93ms vs ~862ms for 'gh copilot --version')
+  if command -v gh >/dev/null 2>&1 && gh extension list 2>/dev/null | grep -q copilot; then
+    # Output: "GitHub Copilot CLI 0.0.422."
+    local ver="$(gh copilot --version 2>&1 | head -1 | awk '{print $NF}')"
+    echo "$ZSH_THEME_COPILOT_PROMPT_PREFIX$(_clean_version "$ver")$ZSH_THEME_COPILOT_PROMPT_SUFFIX"
+  fi
+}
+
+function cursor_prompt_info() {
+  if command -v cursor >/dev/null 2>&1; then
+    # Output: "2.6.21\n<commit-hash>\n<arch>" — head -1 grabs just the version
+    local ver="$(cursor --version 2>&1 | head -1)"
+    echo "$ZSH_THEME_CURSOR_PROMPT_PREFIX$(_clean_version "$ver")$ZSH_THEME_CURSOR_PROMPT_SUFFIX"
+  fi
+}
+
 function return_prompt_info() {
   echo "%(?.$ZSH_THEME_RETURN_PROMPT_SUCCESS_PREFIX$ZSH_THEME_RETURN_PROMPT_SUCCESS$ZSH_THEME_RETURN_PROMPT_SUCCESS_SUFFIX.$ZSH_THEME_RETURN_PROMPT_ERROR_PREFIX$ZSH_THEME_RETURN_PROMPT_ERROR$ZSH_THEME_RETURN_PROMPT_ERROR_SUFFIX)"
 }

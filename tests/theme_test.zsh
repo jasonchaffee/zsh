@@ -87,6 +87,21 @@ if command -v k9s >/dev/null 2>&1; then
   assert_eq "k9s non-empty" true "$( [[ -n "$k9_out" ]] && echo true || echo false )"
 fi
 
+echo "=== AI CLI version function tests ==="
+PROMPT_VERSION_MODE=clean
+if command -v claude >/dev/null 2>&1; then
+  local cl_out="$(claude_prompt_info)"
+  assert_eq "claude non-empty" true "$( [[ -n "$cl_out" ]] && echo true || echo false )"
+fi
+if command -v codex >/dev/null 2>&1; then
+  local cx_out="$(codex_prompt_info)"
+  assert_eq "codex no prefix" true "$( [[ "$cx_out" != *'codex-cli'* ]] && echo true || echo false )"
+fi
+if command -v gemini >/dev/null 2>&1; then
+  local gm_out="$(gemini_prompt_info)"
+  assert_eq "gemini non-empty" true "$( [[ -n "$gm_out" ]] && echo true || echo false )"
+fi
+
 echo ""
 echo "=== Results: $PASS passed, $FAIL failed ==="
 [[ $FAIL -eq 0 ]] && exit 0 || exit 1
