@@ -480,7 +480,6 @@ function prompt_set() {
 }
 
 PROMPT=$(prompt_three)
-_update_theme_colors
 
 RPROMPT='$(git_prompt_status)$(svn_dirty)$(svn_dirty_pwd)$(time_prompt_info)$(time_period_prompt_info)'
 
@@ -722,3 +721,6 @@ else
   ZSH_THEME_GIT_PROMPT_UNMERGED=" ═"
   ZSH_THEME_GIT_PROMPT_UNTRACKED=" ✭"
 fi
+
+# Initialize new tool PREFIX/SUFFIX (must run AFTER static color block)
+_update_theme_colors
