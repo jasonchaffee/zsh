@@ -135,6 +135,40 @@ function packer_prompt_info() {
   fi
 }
 
+# --- Ops version functions ---
+
+function docker_prompt_info() {
+  if command -v docker >/dev/null 2>&1; then
+    # Output: "Docker version 27.5.1-rd, build 0c97515" (client-side, no daemon)
+    local ver="$(docker --version 2>&1 | awk '{print $3}' | tr -d ',')"
+    echo "$ZSH_THEME_DOCKER_PROMPT_PREFIX$(_clean_version "$ver")$ZSH_THEME_DOCKER_PROMPT_SUFFIX"
+  fi
+}
+
+function helm_prompt_info() {
+  if command -v helm >/dev/null 2>&1; then
+    # Output: "v3.17.1+g980d8ac"
+    local ver="$(helm version --short 2>&1)"
+    echo "$ZSH_THEME_HELM_PROMPT_PREFIX$(_clean_version "$ver")$ZSH_THEME_HELM_PROMPT_SUFFIX"
+  fi
+}
+
+function kubectl_prompt_info() {
+  if command -v kubectl >/dev/null 2>&1; then
+    # Output format varies: v1.28+ uses "Client Version: vX.Y.Z"
+    local ver="$(kubectl version --client 2>&1 | head -1 | awk '{print $NF}')"
+    echo "$ZSH_THEME_KUBECTL_PROMPT_PREFIX$(_clean_version "$ver")$ZSH_THEME_KUBECTL_PROMPT_SUFFIX"
+  fi
+}
+
+function k9s_prompt_info() {
+  if command -v k9s >/dev/null 2>&1; then
+    # Output (--short is still multi-line): "Version  v0.50.18\nCommit ...\nDate ..."
+    local ver="$(k9s version --short 2>&1 | grep 'Version' | awk '{print $2}')"
+    echo "$ZSH_THEME_K9S_PROMPT_PREFIX$(_clean_version "$ver")$ZSH_THEME_K9S_PROMPT_SUFFIX"
+  fi
+}
+
 function return_prompt_info() {
   echo "%(?.$ZSH_THEME_RETURN_PROMPT_SUCCESS_PREFIX$ZSH_THEME_RETURN_PROMPT_SUCCESS$ZSH_THEME_RETURN_PROMPT_SUCCESS_SUFFIX.$ZSH_THEME_RETURN_PROMPT_ERROR_PREFIX$ZSH_THEME_RETURN_PROMPT_ERROR$ZSH_THEME_RETURN_PROMPT_ERROR_SUFFIX)"
 }

@@ -67,6 +67,26 @@ if command -v terragrunt >/dev/null 2>&1; then
   assert_eq "terragrunt non-empty" true "$( [[ -n "$tg_out" ]] && echo true || echo false )"
 fi
 
+echo "=== Ops version function tests ==="
+PROMPT_VERSION_MODE=clean
+if command -v docker >/dev/null 2>&1; then
+  local dock_out="$(docker_prompt_info)"
+  assert_eq "docker non-empty" true "$( [[ -n "$dock_out" ]] && echo true || echo false )"
+fi
+if command -v helm >/dev/null 2>&1; then
+  local helm_out="$(helm_prompt_info)"
+  assert_eq "helm no v prefix" true "$( [[ "$helm_out" != *'v'[0-9]* ]] && echo true || echo false )"
+  assert_eq "helm no +build" true "$( [[ "$helm_out" != *'+'* ]] && echo true || echo false )"
+fi
+if command -v kubectl >/dev/null 2>&1; then
+  local k_out="$(kubectl_prompt_info)"
+  assert_eq "kubectl non-empty" true "$( [[ -n "$k_out" ]] && echo true || echo false )"
+fi
+if command -v k9s >/dev/null 2>&1; then
+  local k9_out="$(k9s_prompt_info)"
+  assert_eq "k9s non-empty" true "$( [[ -n "$k9_out" ]] && echo true || echo false )"
+fi
+
 echo ""
 echo "=== Results: $PASS passed, $FAIL failed ==="
 [[ $FAIL -eq 0 ]] && exit 0 || exit 1
