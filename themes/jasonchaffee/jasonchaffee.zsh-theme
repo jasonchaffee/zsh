@@ -51,6 +51,12 @@ function ruby_prompt_info() {
   fi
 }
 
+function rust_prompt_info() {
+  if command -v rustc >/dev/null 2>&1; then
+    echo "$ZSH_THEME_RUST_PROMPT_PREFIX$(rustc --version 2>&1 | awk '{print $2}')$ZSH_THEME_RUST_PROMPT_SUFFIX"
+  fi
+}
+
 function scala_prompt_info() {
   if command -v scala >/dev/null 2>&1; then
     echo "$ZSH_THEME_SCALA_PROMPT_PREFIX$(scala -version 2>&1 | grep 'Scala code runner version' | awk '{print $5}' | tr -d \")$ZSH_THEME_SCALA_PROMPT_SUFFIX"
@@ -86,21 +92,21 @@ function host_prompt_info() {
 }
 
 function prompt_one() {
-  echo '$(return_prompt_info)$(java_prompt_info)$(scala_prompt_info)$(go_prompt_info)$(node_prompt_info)$(python_prompt_info)$(ruby_prompt_info)$(pwd_prompt_info)$(git_prompt_info)$(svn_prompt_info)$(user_privilege_prompt_info)'
+  echo '$(return_prompt_info)$(java_prompt_info)$(scala_prompt_info)$(go_prompt_info)$(node_prompt_info)$(python_prompt_info)$(ruby_prompt_info)$(rust_prompt_info)$(pwd_prompt_info)$(git_prompt_info)$(svn_prompt_info)$(user_privilege_prompt_info)'
 }
 
 function prompt_two() {
   echo '$(user_prompt_info)$(host_prompt_info)$(pwd_prompt_info)$(git_prompt_info)$(svn_prompt_info)
-$(return_prompt_info)$(java_prompt_info)$(scala_prompt_info)$(go_prompt_info)$(node_prompt_info)$(python_prompt_info)$(ruby_prompt_info)$(user_privilege_prompt_info)'
+$(return_prompt_info)$(java_prompt_info)$(scala_prompt_info)$(go_prompt_info)$(node_prompt_info)$(python_prompt_info)$(ruby_prompt_info)$(rust_prompt_info)$(user_privilege_prompt_info)'
 }
 
 function prompt_three() {
-  echo '$(java_prompt_info)$(scala_prompt_info)$(go_prompt_info)$(node_prompt_info)$(python_prompt_info)$(ruby_prompt_info)
+  echo '$(java_prompt_info)$(scala_prompt_info)$(go_prompt_info)$(node_prompt_info)$(python_prompt_info)$(ruby_prompt_info)$(rust_prompt_info)
 $(return_prompt_info)$(pwd_prompt_info)$(git_prompt_info)$(svn_prompt_info)$(user_privilege_prompt_info)'
 }
 
 function prompt_four() {
-  echo '$(java_prompt_info)$(scala_prompt_info)$(go_prompt_info)$(node_prompt_info)$(python_prompt_info)$(ruby_prompt_info)
+  echo '$(java_prompt_info)$(scala_prompt_info)$(go_prompt_info)$(node_prompt_info)$(python_prompt_info)$(ruby_prompt_info)$(rust_prompt_info)
 $(return_prompt_info)$(user_prompt_info)$(host_prompt_info)$(pwd_prompt_info)$(git_prompt_info)$(svn_prompt_info)$(user_privilege_prompt_info)'
 }
 
@@ -129,6 +135,7 @@ GO_PROMPT_PREFIX=go
 NODE_PROMPT_PREFIX=node
 PYTHON_PROMPT_PREFIX=py
 RUBY_PROMPT_PREFIX=rb
+RUST_PROMPT_PREFIX=rust
 SCALA_PROMPT_PREFIX=scala
 
 if [[ "$TERM" != "dumb" ]] && [[ "$DISABLE_LS_COLORS" != "true" ]]; then
@@ -193,6 +200,14 @@ if [[ "$TERM" != "dumb" ]] && [[ "$DISABLE_LS_COLORS" != "true" ]]; then
   else
     ZSH_THEME_RUBY_PROMPT_PREFIX=""
     ZSH_THEME_RUBY_PROMPT_SUFFIX=""
+  fi
+
+  if command -v rustc >/dev/null 2>&1; then
+    ZSH_THEME_RUST_PROMPT_PREFIX=" [%{$fg[yellow]%}$RUST_PROMPT_PREFIX%{$reset_color%}:%{$fg[magenta]%}% "
+    ZSH_THEME_RUST_PROMPT_SUFFIX="%{$reset_color%}]"
+  else
+    ZSH_THEME_RUST_PROMPT_PREFIX=""
+    ZSH_THEME_RUST_PROMPT_SUFFIX=""
   fi
 
   if command -v scala >/dev/null 2>&1; then
@@ -299,6 +314,14 @@ else
   else
     ZSH_THEME_RUBY_PROMPT_PREFIX=" "
     ZSH_THEME_RUBY_PROMPT_SUFFIX=""
+  fi
+
+  if command -v rustc >/dev/null 2>&1; then
+    ZSH_THEME_RUST_PROMPT_PREFIX=" [$RUST_PROMPT_PREFIX:"
+    ZSH_THEME_RUST_PROMPT_SUFFIX="]"
+  else
+    ZSH_THEME_RUST_PROMPT_PREFIX=" "
+    ZSH_THEME_RUST_PROMPT_SUFFIX=""
   fi
 
   if command -v scala >/dev/null 2>&1; then
